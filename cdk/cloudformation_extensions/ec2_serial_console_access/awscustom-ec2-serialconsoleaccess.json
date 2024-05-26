@@ -1,0 +1,19 @@
+{
+    "typeName": "AWSCustom::EC2::SerialConsoleAccess",
+    "description": "Controls the EC2 Serial Console Access region-wide setting",
+    "sourceUrl": "https://github.com/aws-cloudformation/aws-cloudformation-rpdk.git",
+    "definitions": {},
+    "properties": {
+        "Region": {
+            "description": "The AWS region where the serial console access setting is configured",
+            "type": "string"
+        },
+        "Allowed": {"description": "Is the EC2 Serial Console access allowed?", "type": "boolean"}
+    },
+    "additionalProperties": false,
+    "required": ["Allowed"],
+    "readOnlyProperties": ["/properties/Region"],
+    "primaryIdentifier": ["/properties/Region"],
+    "handlers": {
+    }
+}

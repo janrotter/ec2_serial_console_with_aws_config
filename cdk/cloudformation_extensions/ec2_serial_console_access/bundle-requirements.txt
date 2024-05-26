@@ -1,0 +1,2 @@
+cloudformation-cli==0.2.36
+cloudformation-cli-python-plugin==2.1.9
