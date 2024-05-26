@@ -10,6 +10,8 @@ packages = [{include = "serialconsole_config", from = "src"}]
 python = "^3.11"
 aws-cdk-lib = "^2.143.0"
 constructs = ">=10.0.0,<11.0.0"
+cloudformation-cli = "^0.2.36"
+cloudformation-cli-python-plugin = "^2.1.9"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2.1"
