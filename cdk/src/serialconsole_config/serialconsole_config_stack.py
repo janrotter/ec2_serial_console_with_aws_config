@@ -128,6 +128,7 @@ class SerialconsoleConfigStack(Stack):
             event_pattern=events.EventPattern(
                 source=["aws.ec2"], detail={"eventName": ["EnableSerialConsoleAccess"]}
             ),
+            schedule=events.Schedule.rate(Duration.days(1)),
         )
         rule.add_target(
             targets.LambdaFunction(
