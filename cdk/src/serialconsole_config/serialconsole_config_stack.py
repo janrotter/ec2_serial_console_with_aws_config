@@ -194,7 +194,19 @@ rule checkcompliance when
             "ComplianceChange", target=targets.SnsTopic(compliance_topic)
         )
 
-        # compliance_topic.add_subscription(sns_subscriptions.SqsSubscription(dlq))
+        # This queue is here to make it easier to inspect the notifications
+        # from AWS config about the changing compliance. Feel free to remove it
+        # or replace it with other subscriptions that make more sense to you.
+        if True:
+            demo_queue = sqs.Queue(
+                self.resources,
+                "ComplianceNotificationsQueue",
+                enforce_ssl=True,
+                queue_name="ComplianceNotifications",
+            )
+            compliance_topic.add_subscription(
+                sns_subscriptions.SqsSubscription(demo_queue)
+            )
 
         remediation_topic = sns.Topic(self.resources, "RemediationTopic")
 
