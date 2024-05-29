@@ -18,6 +18,8 @@ from aws_cdk import aws_events_targets as targets
 from aws_cdk import aws_iam as iam
 from aws_cdk import aws_lambda as lambda_
 from aws_cdk import aws_s3_assets as assets
+from aws_cdk import aws_sns as sns
+from aws_cdk import aws_sns_subscriptions as sns_subscriptions
 from aws_cdk import aws_sqs as sqs
 from constructs import Construct, DependencyGroup
 from git import config
@@ -145,13 +147,19 @@ class SerialconsoleConfigStack(Stack):
             )
         )
 
-        dlq = sqs.Queue(self.resources, "DLQ")
+        dlq = sqs.Queue(self.resources, "DLQ", enforce_ssl=True)
 
         rule = events.Rule(
             self.resources,
             "UpdateEc2SerialConsoleStatusRule",
             event_pattern=events.EventPattern(
-                source=["aws.ec2"], detail={"eventName": ["EnableSerialConsoleAccess"]}
+                source=["aws.ec2"],
+                detail={
+                    "eventName": [
+                        "EnableSerialConsoleAccess",
+                        "DisableSerialConsoleAccess",
+                    ]
+                },
             ),
             schedule=events.Schedule.rate(Duration.days(1)),
         )
@@ -162,6 +170,69 @@ class SerialconsoleConfigStack(Stack):
                 max_event_age=Duration.hours(1),
                 retry_attempts=2,
             )
+        )
+
+        guard_policy = """
+# This rule checks whether the EC2 Serial Console access is disabled
+rule checkcompliance when
+  resourceType == "AWSCustom::EC2::SerialConsoleAccess" {
+    configuration.Allowed == false
+  }
+"""
+        drift_policy = aws_config.CustomPolicy(
+            self.resources,
+            "CheckIfSerialConsoleDisabledPolicy",
+            policy_text=guard_policy,
+            enable_debug_log=True,
+            rule_scope=aws_config.RuleScope.from_resources(
+                [aws_config.ResourceType.of(TYPE_NAME)]
+            ),
+        )
+        compliance_topic = sns.Topic(self.resources, "ComplianceTopic")
+
+        drift_policy.on_compliance_change(
+            "ComplianceChange", target=targets.SnsTopic(compliance_topic)
+        )
+
+        # compliance_topic.add_subscription(sns_subscriptions.SqsSubscription(dlq))
+
+        remediation_topic = sns.Topic(self.resources, "RemediationTopic")
+
+        remediation_topic.add_subscription(
+            sns_subscriptions.LambdaSubscription(
+                disable_serial_console_lambda, dead_letter_queue=dlq
+            )
+        )
+
+        remediation_role = iam.Role(
+            self.resources,
+            "RemediationRole",
+            assumed_by=iam.ServicePrincipal("ssm.amazonaws.com"),
+        )
+        remediation_topic.grant_publish(remediation_role)
+
+        def static_value(value):
+            return {"StaticValue": {"Values": [value]}}
+
+        def resource_value(value):
+            return {"ResourceValue": value}
+
+        cfn_remediation_configuration = aws_config.CfnRemediationConfiguration(
+            self.resources,
+            "DisableSerialConsoleRemediation",
+            config_rule_name=drift_policy.config_rule_name,
+            target_id="AWS-PublishSNSNotification",
+            target_type="SSM_DOCUMENT",
+            automatic=True,
+            maximum_automatic_attempts=5,
+            retry_attempt_seconds=60,
+            parameters={
+                "TopicArn": static_value(remediation_topic.topic_arn),
+                "Message": static_value(
+                    "EC2 Serial Console is enabled, please fix it."
+                ),
+                "AutomationAssumeRole": static_value(remediation_role.role_arn),
+            },
         )
 
         # Prerequisites
