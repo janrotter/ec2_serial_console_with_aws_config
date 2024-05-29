@@ -4,14 +4,8 @@ import aws_cdk.assertions as assertions
 from serialconsole_config.serialconsole_config_stack import SerialconsoleConfigStack
 
 
-# example tests. To run these tests, uncomment this file along with the example
-# resource in serialconsole_config/serialconsole_config_stack.py
-def test_sqs_queue_created():
+def test_serial_console_config_stack_matches_the_snapshot(snapshot):
     app = core.App()
     stack = SerialconsoleConfigStack(app, "serialconsole-config")
     template = assertions.Template.from_stack(stack)
-
-
-#     template.has_resource_properties("AWS::SQS::Queue", {
-#         "VisibilityTimeout": 300
-#     })
+    assert template.to_json() == snapshot

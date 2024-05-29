@@ -1,0 +1,1065 @@
+# serializer version: 1
+# name: test_serial_console_config_stack_matches_the_snapshot
+  dict({
+    'Parameters': dict({
+      'BootstrapVersion': dict({
+        'Default': '/cdk-bootstrap/hnb659fds/version',
+        'Description': 'Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]',
+        'Type': 'AWS::SSM::Parameter::Value<String>',
+      }),
+    }),
+    'Resources': dict({
+      'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaC7BA1C83': dict({
+        'DependsOn': list([
+          'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleDefaultPolicy34193B28',
+          'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleD21AB806',
+        ]),
+        'Properties': dict({
+          'Code': dict({
+            'S3Bucket': dict({
+              'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}',
+            }),
+            'S3Key': '3aee95a5e656f2ef99ca1057da567ba9c8fedb83c0f2cf8b755301c1bc38ebb8.zip',
+          }),
+          'Handler': 'cfn_custom_resources.update_ec2_serial_console_status.update_ec2_serial_console_status_in_aws_config',
+          'Layers': list([
+            dict({
+              'Ref': 'PrerequisitesDependenciesLambdaLayerD9299BDB',
+            }),
+          ]),
+          'Role': dict({
+            'Fn::GetAtt': list([
+              'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleD21AB806',
+              'Arn',
+            ]),
+          }),
+          'Runtime': 'python3.12',
+          'Timeout': 30,
+        }),
+        'Type': 'AWS::Lambda::Function',
+      }),
+      'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleD21AB806': dict({
+        'Properties': dict({
+          'AssumeRolePolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sts:AssumeRole',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'lambda.amazonaws.com',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'ManagedPolicyArns': list([
+            dict({
+              'Fn::Join': list([
+                '',
+                list([
+                  'arn:',
+                  dict({
+                    'Ref': 'AWS::Partition',
+                  }),
+                  ':iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                ]),
+              ]),
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Role',
+      }),
+      'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleDefaultPolicy34193B28': dict({
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': list([
+                  'cloudformation:DescribeType',
+                  'config:PutResourceConfig',
+                  'ec2:GetSerialConsoleAccessStatus',
+                ]),
+                'Effect': 'Allow',
+                'Resource': '*',
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'PolicyName': 'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleDefaultPolicy34193B28',
+          'Roles': list([
+            dict({
+              'Ref': 'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleD21AB806',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Policy',
+      }),
+      'FinalizersUpdateTheConfigStateCR8DDB5ED3': dict({
+        'DeletionPolicy': 'Delete',
+        'DependsOn': list([
+          'ResourcesEc2SerialConsoleAccessCfnResourceDefaultVersion50808CEE',
+        ]),
+        'Properties': dict({
+          'ServiceToken': dict({
+            'Fn::GetAtt': list([
+              'FinalizersUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaC7BA1C83',
+              'Arn',
+            ]),
+          }),
+        }),
+        'Type': 'Custom::UpdateAwsConfigState',
+        'UpdateReplacePolicy': 'Delete',
+      }),
+      'PrerequisitesCheckAwsConfigCR211044EA': dict({
+        'DeletionPolicy': 'Delete',
+        'Properties': dict({
+          'ServiceToken': dict({
+            'Fn::GetAtt': list([
+              'PrerequisitesCheckAwsConfigEnabledLambda7CBD50C2',
+              'Arn',
+            ]),
+          }),
+        }),
+        'Type': 'Custom::CheckAwsConfigRecorderPresence',
+        'UpdateReplacePolicy': 'Delete',
+      }),
+      'PrerequisitesCheckAwsConfigEnabledLambda7CBD50C2': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigEnabledLambdaServiceRoleDefaultPolicy28E13C4C',
+          'PrerequisitesCheckAwsConfigEnabledLambdaServiceRole26B20E2E',
+        ]),
+        'Properties': dict({
+          'Code': dict({
+            'S3Bucket': dict({
+              'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}',
+            }),
+            'S3Key': '3aee95a5e656f2ef99ca1057da567ba9c8fedb83c0f2cf8b755301c1bc38ebb8.zip',
+          }),
+          'Description': 'This function is used to create a custom CloudFormation resource that upon its creation makes sure that AWS Config recorder is present. This allows us to avoid creating resources that depend on it and could get stuck upon creation.',
+          'Handler': 'cfn_custom_resources.check_aws_config.check_aws_config_recorder_present',
+          'Layers': list([
+            dict({
+              'Ref': 'PrerequisitesDependenciesLambdaLayerD9299BDB',
+            }),
+          ]),
+          'Role': dict({
+            'Fn::GetAtt': list([
+              'PrerequisitesCheckAwsConfigEnabledLambdaServiceRole26B20E2E',
+              'Arn',
+            ]),
+          }),
+          'Runtime': 'python3.12',
+          'Timeout': 15,
+        }),
+        'Type': 'AWS::Lambda::Function',
+      }),
+      'PrerequisitesCheckAwsConfigEnabledLambdaServiceRole26B20E2E': dict({
+        'Properties': dict({
+          'AssumeRolePolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sts:AssumeRole',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'lambda.amazonaws.com',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'ManagedPolicyArns': list([
+            dict({
+              'Fn::Join': list([
+                '',
+                list([
+                  'arn:',
+                  dict({
+                    'Ref': 'AWS::Partition',
+                  }),
+                  ':iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                ]),
+              ]),
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Role',
+      }),
+      'PrerequisitesCheckAwsConfigEnabledLambdaServiceRoleDefaultPolicy28E13C4C': dict({
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'config:DescribeConfigurationRecorders',
+                'Effect': 'Allow',
+                'Resource': '*',
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'PolicyName': 'PrerequisitesCheckAwsConfigEnabledLambdaServiceRoleDefaultPolicy28E13C4C',
+          'Roles': list([
+            dict({
+              'Ref': 'PrerequisitesCheckAwsConfigEnabledLambdaServiceRole26B20E2E',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Policy',
+      }),
+      'PrerequisitesCheckCloudTrailCRB874605B': dict({
+        'DeletionPolicy': 'Delete',
+        'Properties': dict({
+          'ServiceToken': dict({
+            'Fn::GetAtt': list([
+              'PrerequisitesCheckCloudTrailEnabledA3E4BCDE',
+              'Arn',
+            ]),
+          }),
+        }),
+        'Type': 'Custom::CheckAwsCloudTrailTrailsPresence',
+        'UpdateReplacePolicy': 'Delete',
+      }),
+      'PrerequisitesCheckCloudTrailEnabledA3E4BCDE': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckCloudTrailEnabledServiceRoleDefaultPolicy182933D5',
+          'PrerequisitesCheckCloudTrailEnabledServiceRoleA410060B',
+        ]),
+        'Properties': dict({
+          'Code': dict({
+            'S3Bucket': dict({
+              'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}',
+            }),
+            'S3Key': '3aee95a5e656f2ef99ca1057da567ba9c8fedb83c0f2cf8b755301c1bc38ebb8.zip',
+          }),
+          'Description': 'This function is used to create a custom CloudFormation resource that upon its creation makes sure that AWS CloudTrail trail is present. This allows us to avoid creating resources that depend on it and could get stuck upon creation.',
+          'Handler': 'cfn_custom_resources.check_aws_cloudtrail.check_aws_cloudtrail_has_trails',
+          'Layers': list([
+            dict({
+              'Ref': 'PrerequisitesDependenciesLambdaLayerD9299BDB',
+            }),
+          ]),
+          'Role': dict({
+            'Fn::GetAtt': list([
+              'PrerequisitesCheckCloudTrailEnabledServiceRoleA410060B',
+              'Arn',
+            ]),
+          }),
+          'Runtime': 'python3.12',
+          'Timeout': 15,
+        }),
+        'Type': 'AWS::Lambda::Function',
+      }),
+      'PrerequisitesCheckCloudTrailEnabledServiceRoleA410060B': dict({
+        'Properties': dict({
+          'AssumeRolePolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sts:AssumeRole',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'lambda.amazonaws.com',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'ManagedPolicyArns': list([
+            dict({
+              'Fn::Join': list([
+                '',
+                list([
+                  'arn:',
+                  dict({
+                    'Ref': 'AWS::Partition',
+                  }),
+                  ':iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                ]),
+              ]),
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Role',
+      }),
+      'PrerequisitesCheckCloudTrailEnabledServiceRoleDefaultPolicy182933D5': dict({
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'cloudtrail:DescribeTrails',
+                'Effect': 'Allow',
+                'Resource': '*',
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'PolicyName': 'PrerequisitesCheckCloudTrailEnabledServiceRoleDefaultPolicy182933D5',
+          'Roles': list([
+            dict({
+              'Ref': 'PrerequisitesCheckCloudTrailEnabledServiceRoleA410060B',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Policy',
+      }),
+      'PrerequisitesDependenciesLambdaLayerD9299BDB': dict({
+        'Properties': dict({
+          'Content': dict({
+            'S3Bucket': dict({
+              'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}',
+            }),
+            'S3Key': '66411f1b734a2f7dac62ca9eecdb8ba5c41aa56024b220141a2ba53ea4d46c11.zip',
+          }),
+        }),
+        'Type': 'AWS::Lambda::LayerVersion',
+      }),
+      'ResourcesCheckIfSerialConsoleDisabledPolicyComplianceChange035CBE9F': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'EventPattern': dict({
+            'detail': dict({
+              'configRuleName': list([
+                dict({
+                  'Ref': 'ResourcesCheckIfSerialConsoleDisabledPolicyEAA4C736',
+                }),
+              ]),
+            }),
+            'detail-type': list([
+              'Config Rules Compliance Change',
+            ]),
+            'source': list([
+              'aws.config',
+            ]),
+          }),
+          'State': 'ENABLED',
+          'Targets': list([
+            dict({
+              'Arn': dict({
+                'Ref': 'ResourcesComplianceTopic188E70DC',
+              }),
+              'Id': 'Target0',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::Events::Rule',
+      }),
+      'ResourcesCheckIfSerialConsoleDisabledPolicyEAA4C736': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'Scope': dict({
+            'ComplianceResourceTypes': list([
+              'AWSCustom::EC2::SerialConsoleAccess',
+            ]),
+          }),
+          'Source': dict({
+            'CustomPolicyDetails': dict({
+              'EnableDebugLogDelivery': True,
+              'PolicyRuntime': 'guard-2.x.x',
+              'PolicyText': '''
+                
+                # This rule checks whether the EC2 Serial Console access is disabled
+                rule checkcompliance when
+                  resourceType == "AWSCustom::EC2::SerialConsoleAccess" {
+                    configuration.Allowed == false
+                  }
+  
+              ''',
+            }),
+            'Owner': 'CUSTOM_POLICY',
+            'SourceDetails': list([
+              dict({
+                'EventSource': 'aws.config',
+                'MessageType': 'ConfigurationItemChangeNotification',
+              }),
+              dict({
+                'EventSource': 'aws.config',
+                'MessageType': 'OversizedConfigurationItemChangeNotification',
+              }),
+            ]),
+          }),
+        }),
+        'Type': 'AWS::Config::ConfigRule',
+      }),
+      'ResourcesComplianceNotificationsQueueF8923F62': dict({
+        'DeletionPolicy': 'Delete',
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'QueueName': 'ComplianceNotifications',
+        }),
+        'Type': 'AWS::SQS::Queue',
+        'UpdateReplacePolicy': 'Delete',
+      }),
+      'ResourcesComplianceNotificationsQueuePolicy61CD6F41': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sqs:*',
+                'Condition': dict({
+                  'Bool': dict({
+                    'aws:SecureTransport': 'false',
+                  }),
+                }),
+                'Effect': 'Deny',
+                'Principal': dict({
+                  'AWS': '*',
+                }),
+                'Resource': dict({
+                  'Fn::GetAtt': list([
+                    'ResourcesComplianceNotificationsQueueF8923F62',
+                    'Arn',
+                  ]),
+                }),
+              }),
+              dict({
+                'Action': 'sqs:SendMessage',
+                'Condition': dict({
+                  'ArnEquals': dict({
+                    'aws:SourceArn': dict({
+                      'Ref': 'ResourcesComplianceTopic188E70DC',
+                    }),
+                  }),
+                }),
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'sns.amazonaws.com',
+                }),
+                'Resource': dict({
+                  'Fn::GetAtt': list([
+                    'ResourcesComplianceNotificationsQueueF8923F62',
+                    'Arn',
+                  ]),
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'Queues': list([
+            dict({
+              'Ref': 'ResourcesComplianceNotificationsQueueF8923F62',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::SQS::QueuePolicy',
+      }),
+      'ResourcesComplianceNotificationsQueueserialconsoleconfigResourcesComplianceTopicBE4917074727B5EA': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+          'ResourcesComplianceNotificationsQueuePolicy61CD6F41',
+        ]),
+        'Properties': dict({
+          'Endpoint': dict({
+            'Fn::GetAtt': list([
+              'ResourcesComplianceNotificationsQueueF8923F62',
+              'Arn',
+            ]),
+          }),
+          'Protocol': 'sqs',
+          'TopicArn': dict({
+            'Ref': 'ResourcesComplianceTopic188E70DC',
+          }),
+        }),
+        'Type': 'AWS::SNS::Subscription',
+      }),
+      'ResourcesComplianceTopic188E70DC': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Type': 'AWS::SNS::Topic',
+      }),
+      'ResourcesComplianceTopicPolicyD95BF3C1': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sns:Publish',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'events.amazonaws.com',
+                }),
+                'Resource': dict({
+                  'Ref': 'ResourcesComplianceTopic188E70DC',
+                }),
+                'Sid': '0',
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'Topics': list([
+            dict({
+              'Ref': 'ResourcesComplianceTopic188E70DC',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::SNS::TopicPolicy',
+      }),
+      'ResourcesDLQ522FC1B7': dict({
+        'DeletionPolicy': 'Delete',
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Type': 'AWS::SQS::Queue',
+        'UpdateReplacePolicy': 'Delete',
+      }),
+      'ResourcesDLQPolicyB833AC92': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sqs:*',
+                'Condition': dict({
+                  'Bool': dict({
+                    'aws:SecureTransport': 'false',
+                  }),
+                }),
+                'Effect': 'Deny',
+                'Principal': dict({
+                  'AWS': '*',
+                }),
+                'Resource': dict({
+                  'Fn::GetAtt': list([
+                    'ResourcesDLQ522FC1B7',
+                    'Arn',
+                  ]),
+                }),
+              }),
+              dict({
+                'Action': 'sqs:SendMessage',
+                'Condition': dict({
+                  'ArnEquals': dict({
+                    'aws:SourceArn': dict({
+                      'Fn::GetAtt': list([
+                        'ResourcesUpdateEc2SerialConsoleStatusRuleF77495A7',
+                        'Arn',
+                      ]),
+                    }),
+                  }),
+                }),
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'events.amazonaws.com',
+                }),
+                'Resource': dict({
+                  'Fn::GetAtt': list([
+                    'ResourcesDLQ522FC1B7',
+                    'Arn',
+                  ]),
+                }),
+                'Sid': 'AllowEventRuleserialconsoleconfigResourcesUpdateEc2SerialConsoleStatusRule44FE6CD1',
+              }),
+              dict({
+                'Action': 'sqs:SendMessage',
+                'Condition': dict({
+                  'ArnEquals': dict({
+                    'aws:SourceArn': dict({
+                      'Ref': 'ResourcesRemediationTopic93811DAF',
+                    }),
+                  }),
+                }),
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'sns.amazonaws.com',
+                }),
+                'Resource': dict({
+                  'Fn::GetAtt': list([
+                    'ResourcesDLQ522FC1B7',
+                    'Arn',
+                  ]),
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'Queues': list([
+            dict({
+              'Ref': 'ResourcesDLQ522FC1B7',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::SQS::QueuePolicy',
+      }),
+      'ResourcesDisableSerialConsoleLambdaAllowInvokeserialconsoleconfigResourcesRemediationTopicAF5934D852082634': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'Action': 'lambda:InvokeFunction',
+          'FunctionName': dict({
+            'Fn::GetAtt': list([
+              'ResourcesDisableSerialConsoleLambdaB52E1E54',
+              'Arn',
+            ]),
+          }),
+          'Principal': 'sns.amazonaws.com',
+          'SourceArn': dict({
+            'Ref': 'ResourcesRemediationTopic93811DAF',
+          }),
+        }),
+        'Type': 'AWS::Lambda::Permission',
+      }),
+      'ResourcesDisableSerialConsoleLambdaB52E1E54': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+          'ResourcesDisableSerialConsoleLambdaServiceRoleDefaultPolicy04EE665D',
+          'ResourcesDisableSerialConsoleLambdaServiceRoleFDE48D57',
+        ]),
+        'Properties': dict({
+          'Code': dict({
+            'S3Bucket': dict({
+              'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}',
+            }),
+            'S3Key': '3aee95a5e656f2ef99ca1057da567ba9c8fedb83c0f2cf8b755301c1bc38ebb8.zip',
+          }),
+          'FunctionName': 'disableSerialConsoleLambda',
+          'Handler': 'ec2_serial_console.disable_serial_console',
+          'Layers': list([
+            dict({
+              'Ref': 'PrerequisitesDependenciesLambdaLayerD9299BDB',
+            }),
+          ]),
+          'Role': dict({
+            'Fn::GetAtt': list([
+              'ResourcesDisableSerialConsoleLambdaServiceRoleFDE48D57',
+              'Arn',
+            ]),
+          }),
+          'Runtime': 'python3.12',
+          'Timeout': 15,
+        }),
+        'Type': 'AWS::Lambda::Function',
+      }),
+      'ResourcesDisableSerialConsoleLambdaRemediationTopic425FAD1A': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'Endpoint': dict({
+            'Fn::GetAtt': list([
+              'ResourcesDisableSerialConsoleLambdaB52E1E54',
+              'Arn',
+            ]),
+          }),
+          'Protocol': 'lambda',
+          'RedrivePolicy': dict({
+            'deadLetterTargetArn': dict({
+              'Fn::GetAtt': list([
+                'ResourcesDLQ522FC1B7',
+                'Arn',
+              ]),
+            }),
+          }),
+          'TopicArn': dict({
+            'Ref': 'ResourcesRemediationTopic93811DAF',
+          }),
+        }),
+        'Type': 'AWS::SNS::Subscription',
+      }),
+      'ResourcesDisableSerialConsoleLambdaServiceRoleDefaultPolicy04EE665D': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'ec2:DisableSerialConsoleAccess',
+                'Effect': 'Allow',
+                'Resource': '*',
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'PolicyName': 'ResourcesDisableSerialConsoleLambdaServiceRoleDefaultPolicy04EE665D',
+          'Roles': list([
+            dict({
+              'Ref': 'ResourcesDisableSerialConsoleLambdaServiceRoleFDE48D57',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Policy',
+      }),
+      'ResourcesDisableSerialConsoleLambdaServiceRoleFDE48D57': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'AssumeRolePolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sts:AssumeRole',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'lambda.amazonaws.com',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'ManagedPolicyArns': list([
+            dict({
+              'Fn::Join': list([
+                '',
+                list([
+                  'arn:',
+                  dict({
+                    'Ref': 'AWS::Partition',
+                  }),
+                  ':iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                ]),
+              ]),
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Role',
+      }),
+      'ResourcesDisableSerialConsoleRemediation1F39B30D': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'Automatic': True,
+          'ConfigRuleName': dict({
+            'Ref': 'ResourcesCheckIfSerialConsoleDisabledPolicyEAA4C736',
+          }),
+          'MaximumAutomaticAttempts': 5,
+          'Parameters': dict({
+            'AutomationAssumeRole': dict({
+              'StaticValue': dict({
+                'Values': list([
+                  dict({
+                    'Fn::GetAtt': list([
+                      'ResourcesRemediationRole34D6B380',
+                      'Arn',
+                    ]),
+                  }),
+                ]),
+              }),
+            }),
+            'Message': dict({
+              'StaticValue': dict({
+                'Values': list([
+                  'EC2 Serial Console is enabled, please fix it.',
+                ]),
+              }),
+            }),
+            'TopicArn': dict({
+              'StaticValue': dict({
+                'Values': list([
+                  dict({
+                    'Ref': 'ResourcesRemediationTopic93811DAF',
+                  }),
+                ]),
+              }),
+            }),
+          }),
+          'RetryAttemptSeconds': 60,
+          'TargetId': 'AWS-PublishSNSNotification',
+          'TargetType': 'SSM_DOCUMENT',
+        }),
+        'Type': 'AWS::Config::RemediationConfiguration',
+      }),
+      'ResourcesEc2SerialConsoleAccessCfnResourceDefaultVersion50808CEE': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'TypeVersionArn': dict({
+            'Fn::GetAtt': list([
+              'ResourcesEc2SerialConsoleAccessCfnResourceVersionF78104F2',
+              'Arn',
+            ]),
+          }),
+        }),
+        'Type': 'AWS::CloudFormation::ResourceDefaultVersion',
+      }),
+      'ResourcesEc2SerialConsoleAccessCfnResourceVersionF78104F2': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'SchemaHandlerPackage': dict({
+            'Fn::Sub': 's3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/43ac6effefe3cdaecbda2ac3e02a74a5c3094e377e0164727e5461bf05d810a3.zip',
+          }),
+          'TypeName': 'AWSCustom::EC2::SerialConsoleAccess',
+        }),
+        'Type': 'AWS::CloudFormation::ResourceVersion',
+      }),
+      'ResourcesRemediationRole34D6B380': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'AssumeRolePolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sts:AssumeRole',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'ssm.amazonaws.com',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+        }),
+        'Type': 'AWS::IAM::Role',
+      }),
+      'ResourcesRemediationRoleDefaultPolicy82CCB5CA': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sns:Publish',
+                'Effect': 'Allow',
+                'Resource': dict({
+                  'Ref': 'ResourcesRemediationTopic93811DAF',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'PolicyName': 'ResourcesRemediationRoleDefaultPolicy82CCB5CA',
+          'Roles': list([
+            dict({
+              'Ref': 'ResourcesRemediationRole34D6B380',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Policy',
+      }),
+      'ResourcesRemediationTopic93811DAF': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Type': 'AWS::SNS::Topic',
+      }),
+      'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambda89A04851': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+          'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleDefaultPolicyC1439EC7',
+          'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRole2CE9A65A',
+        ]),
+        'Properties': dict({
+          'Code': dict({
+            'S3Bucket': dict({
+              'Fn::Sub': 'cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}',
+            }),
+            'S3Key': '3aee95a5e656f2ef99ca1057da567ba9c8fedb83c0f2cf8b755301c1bc38ebb8.zip',
+          }),
+          'FunctionName': 'updateEc2SerialConsoleAccessStateInAwsConfig',
+          'Handler': 'ec2_serial_console.update_config_state',
+          'Layers': list([
+            dict({
+              'Ref': 'PrerequisitesDependenciesLambdaLayerD9299BDB',
+            }),
+          ]),
+          'Role': dict({
+            'Fn::GetAtt': list([
+              'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRole2CE9A65A',
+              'Arn',
+            ]),
+          }),
+          'Runtime': 'python3.12',
+          'Timeout': 30,
+        }),
+        'Type': 'AWS::Lambda::Function',
+      }),
+      'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRole2CE9A65A': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'AssumeRolePolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': 'sts:AssumeRole',
+                'Effect': 'Allow',
+                'Principal': dict({
+                  'Service': 'lambda.amazonaws.com',
+                }),
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'ManagedPolicyArns': list([
+            dict({
+              'Fn::Join': list([
+                '',
+                list([
+                  'arn:',
+                  dict({
+                    'Ref': 'AWS::Partition',
+                  }),
+                  ':iam::aws:policy/service-role/AWSLambdaBasicExecutionRole',
+                ]),
+              ]),
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Role',
+      }),
+      'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleDefaultPolicyC1439EC7': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'PolicyDocument': dict({
+            'Statement': list([
+              dict({
+                'Action': list([
+                  'cloudformation:DescribeType',
+                  'config:PutResourceConfig',
+                  'ec2:GetSerialConsoleAccessStatus',
+                ]),
+                'Effect': 'Allow',
+                'Resource': '*',
+              }),
+            ]),
+            'Version': '2012-10-17',
+          }),
+          'PolicyName': 'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRoleDefaultPolicyC1439EC7',
+          'Roles': list([
+            dict({
+              'Ref': 'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambdaServiceRole2CE9A65A',
+            }),
+          ]),
+        }),
+        'Type': 'AWS::IAM::Policy',
+      }),
+      'ResourcesUpdateEc2SerialConsoleStatusRuleAllowEventRuleserialconsoleconfigResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambda4244191F260D0632': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'Action': 'lambda:InvokeFunction',
+          'FunctionName': dict({
+            'Fn::GetAtt': list([
+              'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambda89A04851',
+              'Arn',
+            ]),
+          }),
+          'Principal': 'events.amazonaws.com',
+          'SourceArn': dict({
+            'Fn::GetAtt': list([
+              'ResourcesUpdateEc2SerialConsoleStatusRuleF77495A7',
+              'Arn',
+            ]),
+          }),
+        }),
+        'Type': 'AWS::Lambda::Permission',
+      }),
+      'ResourcesUpdateEc2SerialConsoleStatusRuleF77495A7': dict({
+        'DependsOn': list([
+          'PrerequisitesCheckAwsConfigCR211044EA',
+          'PrerequisitesCheckCloudTrailCRB874605B',
+        ]),
+        'Properties': dict({
+          'EventPattern': dict({
+            'detail': dict({
+              'eventName': list([
+                'EnableSerialConsoleAccess',
+                'DisableSerialConsoleAccess',
+              ]),
+            }),
+            'source': list([
+              'aws.ec2',
+            ]),
+          }),
+          'ScheduleExpression': 'rate(1 day)',
+          'State': 'ENABLED',
+          'Targets': list([
+            dict({
+              'Arn': dict({
+                'Fn::GetAtt': list([
+                  'ResourcesUpdateEc2SerialConsoleAccessStateInAwsConfigLambda89A04851',
+                  'Arn',
+                ]),
+              }),
+              'DeadLetterConfig': dict({
+                'Arn': dict({
+                  'Fn::GetAtt': list([
+                    'ResourcesDLQ522FC1B7',
+                    'Arn',
+                  ]),
+                }),
+              }),
+              'Id': 'Target0',
+              'RetryPolicy': dict({
+                'MaximumEventAgeInSeconds': 3600,
+                'MaximumRetryAttempts': 2,
+              }),
+            }),
+          ]),
+        }),
+        'Type': 'AWS::Events::Rule',
+      }),
+    }),
+    'Rules': dict({
+      'CheckBootstrapVersion': dict({
+        'Assertions': list([
+          dict({
+            'Assert': dict({
+              'Fn::Not': list([
+                dict({
+                  'Fn::Contains': list([
+                    list([
+                      '1',
+                      '2',
+                      '3',
+                      '4',
+                      '5',
+                    ]),
+                    dict({
+                      'Ref': 'BootstrapVersion',
+                    }),
+                  ]),
+                }),
+              ]),
+            }),
+            'AssertDescription': "CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.",
+          }),
+        ]),
+      }),
+    }),
+  })
+# ---
