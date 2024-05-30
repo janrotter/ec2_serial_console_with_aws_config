@@ -21,8 +21,7 @@ from aws_cdk import aws_s3_assets as assets
 from aws_cdk import aws_sns as sns
 from aws_cdk import aws_sns_subscriptions as sns_subscriptions
 from aws_cdk import aws_sqs as sqs
-from constructs import Construct, DependencyGroup
-from git import config
+from constructs import Construct
 
 
 def get_repo_root():
@@ -34,6 +33,7 @@ def get_repo_root():
 
 CDK_ROOT = get_repo_root() / "cdk"
 CLOUDFORMATION_EXTENSIONS_DIR = CDK_ROOT / "cloudformation_extensions"
+TYPE_NAME = "AWSCustom::EC2::SerialConsoleAccess"
 
 
 @jsii.implements(IAspect)
@@ -56,55 +56,9 @@ class SerialconsoleConfigStack(Stack):
         self.resources = Construct(self, "Resources")
         self.finalizers = Construct(self, "Finalizers")
 
-        self.dependencies_layer = lambda_.LayerVersion(
-            self.prerequisites,
-            "DependenciesLambdaLayer",
-            code=lambda_.Code.from_asset(
-                str(CDK_ROOT / "src" / "lambdas"),
-                bundling=BundlingOptions(
-                    image=DockerImage.from_registry(
-                        "python:3.12@sha256:3966b81808d864099f802080d897cef36c01550472ab3955fdd716d1c665acd6"
-                    ),
-                    command=[
-                        "bash",
-                        "-c",
-                        "pip install -r requirements.txt --target /asset-output/python/",
-                    ],
-                ),
-            ),
-        )
+        self.create_common_lambda_layer_with_dependencies()
 
-        ec2_serial_console_access_dir = str(
-            CLOUDFORMATION_EXTENSIONS_DIR / "ec2_serial_console_access"
-        )
-
-        bundle = assets.Asset(
-            self.resources,
-            "Ec2SerialConsoleAccessExtensionBundle",
-            path=ec2_serial_console_access_dir,
-            bundling=BundlingOptions(
-                image=DockerImage.from_build(ec2_serial_console_access_dir),
-                command=[
-                    "bash",
-                    "-c",
-                    "cfn package && mv awscustom-ec2-serialconsoleaccess.zip /asset-output/",
-                ],
-            ),
-        )
-
-        TYPE_NAME = "AWSCustom::EC2::SerialConsoleAccess"
-        cfn_resource_version = cloudformation.CfnResourceVersion(
-            self.resources,
-            "Ec2SerialConsoleAccessCfnResourceVersion",
-            schema_handler_package=bundle.s3_object_url,
-            type_name=TYPE_NAME,
-        )
-
-        resource_default_version = cloudformation.CfnResourceDefaultVersion(
-            self.resources,
-            "Ec2SerialConsoleAccessCfnResourceDefaultVersion",
-            type_version_arn=cfn_resource_version.attr_arn,
-        )
+        self.add_cloudformation_custom_resource_type()
 
         config_updater_lambda = lambda_.Function(
             self.resources,
@@ -226,10 +180,7 @@ rule checkcompliance when
         def static_value(value):
             return {"StaticValue": {"Values": [value]}}
 
-        def resource_value(value):
-            return {"ResourceValue": value}
-
-        cfn_remediation_configuration = aws_config.CfnRemediationConfiguration(
+        aws_config.CfnRemediationConfiguration(
             self.resources,
             "DisableSerialConsoleRemediation",
             config_rule_name=drift_policy.config_rule_name,
@@ -247,7 +198,77 @@ rule checkcompliance when
             },
         )
 
-        # Prerequisites
+        self.add_prerequisites_checks()
+        self.add_finalizers(dependencies=[self.resource_default_version])
+
+    def add_finalizers(self, dependencies):
+        cr_lambda = lambda_.Function(
+            self.finalizers,
+            "UpdateEc2SerialConsoleAccessStateInAwsConfigLambda",
+            # description="That is a handler for a custom CloudFormation resource "
+            # "that updates the AWS Config state of the EC2 Serial Console access "
+            # "setting upon creation.",
+            runtime=lambda_.Runtime.PYTHON_3_12,
+            handler="cfn_custom_resources.update_ec2_serial_console_status."
+            "update_ec2_serial_console_status_in_aws_config",
+            code=lambda_.Code.from_asset(str(CDK_ROOT / "src" / "lambdas")),
+            layers=[self.dependencies_layer],
+            timeout=Duration.seconds(30),
+        )
+        cr_lambda.add_to_role_policy(
+            statement=iam.PolicyStatement(
+                effect=iam.Effect.ALLOW,
+                resources=["*"],
+                actions=[
+                    "cloudformation:DescribeType",
+                    "config:PutResourceConfig",
+                    "ec2:GetSerialConsoleAccessStatus",
+                ],
+            )
+        )
+        cr = CustomResource(
+            self.finalizers,
+            "UpdateTheConfigStateCR",
+            resource_type="Custom::UpdateAwsConfigState",
+            service_token=cr_lambda.function_arn,
+        )
+
+        for d in dependencies:
+            cr.node.add_dependency(d)
+
+    def add_cloudformation_custom_resource_type(self):
+        ec2_serial_console_access_dir = str(
+            CLOUDFORMATION_EXTENSIONS_DIR / "ec2_serial_console_access"
+        )
+
+        bundle = assets.Asset(
+            self.resources,
+            "Ec2SerialConsoleAccessExtensionBundle",
+            path=ec2_serial_console_access_dir,
+            bundling=BundlingOptions(
+                image=DockerImage.from_build(ec2_serial_console_access_dir),
+                command=[
+                    "bash",
+                    "-c",
+                    "cfn package && mv awscustom-ec2-serialconsoleaccess.zip /asset-output/",
+                ],
+            ),
+        )
+
+        cfn_resource_version = cloudformation.CfnResourceVersion(
+            self.resources,
+            "Ec2SerialConsoleAccessCfnResourceVersion",
+            schema_handler_package=bundle.s3_object_url,
+            type_name=TYPE_NAME,
+        )
+
+        self.resource_default_version = cloudformation.CfnResourceDefaultVersion(
+            self.resources,
+            "Ec2SerialConsoleAccessCfnResourceDefaultVersion",
+            type_version_arn=cfn_resource_version.attr_arn,
+        )
+
+    def add_prerequisites_checks(self):
         check_config_enabled = lambda_.Function(
             self.prerequisites,
             "CheckAwsConfigEnabledLambda",
@@ -309,36 +330,21 @@ rule checkcompliance when
         Aspects.of(self.resources).add(DependsOnAspect(check_config_cr))
         Aspects.of(self.resources).add(DependsOnAspect(check_cloudtrail_cr))
 
-        self.add_finalizers(dependencies=[resource_default_version])
-
-    def add_finalizers(self, dependencies):
-        cr_lambda = lambda_.Function(
-            self.finalizers,
-            "UpdateEc2SerialConsoleAccessStateInAwsConfigLambda",
-            runtime=lambda_.Runtime.PYTHON_3_12,
-            handler="cfn_custom_resources.update_ec2_serial_console_status."
-            "update_ec2_serial_console_status_in_aws_config",
-            code=lambda_.Code.from_asset(str(CDK_ROOT / "src" / "lambdas")),
-            layers=[self.dependencies_layer],
-            timeout=Duration.seconds(30),
+    def create_common_lambda_layer_with_dependencies(self):
+        self.dependencies_layer = lambda_.LayerVersion(
+            self.prerequisites,
+            "DependenciesLambdaLayer",
+            code=lambda_.Code.from_asset(
+                str(CDK_ROOT / "src" / "lambdas"),
+                bundling=BundlingOptions(
+                    image=DockerImage.from_registry(
+                        "python:3.12@sha256:3966b81808d864099f802080d897cef36c01550472ab3955fdd716d1c665acd6"
+                    ),
+                    command=[
+                        "bash",
+                        "-c",
+                        "pip install -r requirements.txt --target /asset-output/python/",
+                    ],
+                ),
+            ),
         )
-        cr_lambda.add_to_role_policy(
-            statement=iam.PolicyStatement(
-                effect=iam.Effect.ALLOW,
-                resources=["*"],
-                actions=[
-                    "cloudformation:DescribeType",
-                    "config:PutResourceConfig",
-                    "ec2:GetSerialConsoleAccessStatus",
-                ],
-            )
-        )
-        cr = CustomResource(
-            self.finalizers,
-            "UpdateTheConfigStateCR",
-            resource_type="Custom::UpdateAwsConfigState",
-            service_token=cr_lambda.function_arn,
-        )
-
-        for d in dependencies:
-            cr.node.add_dependency(d)
