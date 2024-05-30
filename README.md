@@ -109,3 +109,6 @@ Once deployed, you can test the solution:
   it harder to figure out what entity created them. An aspect can be applied to
   tag all resources consistently.
 - There is no monitoring configured on the Dead Letter Queues.
+- The bundling Docker image for the CloudFormation custom resource type is
+  rebuilt each time, changing the asset hash of the schema package. This can be
+  fixed by using a custom hash or a pre-built image.
