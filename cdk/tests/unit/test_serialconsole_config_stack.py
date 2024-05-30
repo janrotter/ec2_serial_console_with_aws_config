@@ -8,4 +8,8 @@ def test_serial_console_config_stack_matches_the_snapshot(snapshot):
     app = core.App()
     stack = SerialconsoleConfigStack(app, "serialconsole-config")
     template = assertions.Template.from_stack(stack)
-    assert template.to_json() == snapshot
+    template_json = template.to_json()
+    template_json["Resources"][
+        "ResourcesEc2SerialConsoleAccessCfnResourceVersionF78104F2"
+    ]["Properties"]["SchemaHandlerPackage"] = "placeholder"
+    assert template_json == snapshot

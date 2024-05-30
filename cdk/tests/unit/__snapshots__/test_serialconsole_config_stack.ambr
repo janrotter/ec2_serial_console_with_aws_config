@@ -807,9 +807,7 @@
           'PrerequisitesCheckCloudTrailCRB874605B',
         ]),
         'Properties': dict({
-          'SchemaHandlerPackage': dict({
-            'Fn::Sub': 's3://cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}/43ac6effefe3cdaecbda2ac3e02a74a5c3094e377e0164727e5461bf05d810a3.zip',
-          }),
+          'SchemaHandlerPackage': 'placeholder',
           'TypeName': 'AWSCustom::EC2::SerialConsoleAccess',
         }),
         'Type': 'AWS::CloudFormation::ResourceVersion',
